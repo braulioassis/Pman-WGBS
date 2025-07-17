@@ -9,7 +9,7 @@ ls */*.R1.fastp.fq.gz | while read file; do
                 in2="${name}.R2.fastp.fq.gz" \
                 out1="${name}.1.bb.fp.fq.gz" \
                 out2="${name}.2.bb.fp.fq.gz" \
-                ref=/mnt/beegfs/kw156773e/NG_DNA/peromyscus/X202SC21071689-Z01-F001/raw_data/KN/adapters.fa \
+                ref=adapters.fa \
                 ktrim=r k=23 mink=11 hdist=1 tpe tbo
         fi
 done
