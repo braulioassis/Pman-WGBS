@@ -23,6 +23,20 @@ hisat2 -x ht2 \
 
 # Obtain C-to-T substitutions in ME
 # Run identify_c_to_t.py
+# Add Stop position to radmeth file
+awk 'BEGIN{OFS="\t"} {print $1, $2, $2+1, $3, $4, $5, $6, $7, $8, $9}' radmeth.w.pop.trt.bed > radmeth.w.pop.trt.fixed.bed
+awk 'BEGIN{OFS="\t"} {print $1, $2, $2+1, $3, $4, $5, $6, $7, $8, $9}' radmeth.lz.pop.trt.bed > radmeth.lz.pop.trt.fixed.bed
+awk 'BEGIN{OFS="\t"} {print $1, $2, $2+1, $3, $4, $5, $6, $7, $8, $9}' radmeth.jz.pop.trt.bed > radmeth.jz.pop.trt.fixed.bed
+
+# Remove overlapping positions
+bedtools intersect -a radmeth.w.pop.trt.fixed.bed -b c_to_t_positions.bed -v > radmeth.w.pop.trt.filtered.bed
+bedtools intersect -a radmeth.lz.pop.trt.fixed.bed -b c_to_t_positions.bed -v > radmeth.lz.pop.trt.filtered.bed
+bedtools intersect -a radmeth.jz.pop.trt.fixed.bed -b c_to_t_positions.bed -v > radmeth.jz.pop.trt.filtered.bed
+
+# Remove stop position for downstream processing
+awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.w.pop.trt.filtered.bed > radmeth.w.pop.trt.filtered.bed
+awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.lz.pop.trt.filtered.bed > radmeth.lz.pop.trt.filtered.bed
+awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.jz.pop.trt.filtered.bed > radmeth.jz.pop.trt.filtered.bed
 
 ### Build DMR's 
 # Adjust p-values based on neighboring loci
