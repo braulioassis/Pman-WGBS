@@ -1,11 +1,11 @@
-DATA_DIR=/home/kwilst/WGBS/PROCESSED
+DATA_DIR=dir
 
 source ~/miniconda3/bin/activate
 conda activate fastp
 
 cd $DATA_DIR
 
-ls /home/dio3/wilstermanlab/UM_051-19_RawSeqData/WGBS_DATA/L*_1.fq.gz  | while read file; do
+ls L*_1.fq.gz  | while read file; do
         ref=$(echo "${file}" | cut -d "_" -f 1-7) 
         name=$(echo "${file}" | cut -d "_" -f 1-7 | cut -d "/" -f 7)
         echo "${name}"
