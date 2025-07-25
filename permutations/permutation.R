@@ -5,7 +5,9 @@ chrs <- read.table("sequence_report.tsv", header = T, sep = "\t")
 chrs$GenBank.seq.accession <- gsub("\\.2$", ".1", chrs$GenBank.seq.accession)
 
 # Get chromosome sizes
-genome <- chrs[, c(14, 11)]
+geno <- chrs[, c(14, 11)]
+geno <- geno[c(1:24), ]
+custom.genome <- toGRanges(geno)
 
 # Get DMRs
 dmr <- read.table("dmr.bed", sep = "\t", header = F, 
@@ -14,7 +16,7 @@ dmr$Chrom <- chrs$Sequence.name[match(dmr$Contig, chrs$RefSeq.seq.accession)]
 dmr$Gap <- (dmr$End - dmr$Start)/dmr$Count
 dmr <- dmr[dmr$Count > 29, ]
 dmr <- dmr[dmr$Gap < 50, ]
-# For ...
+# When filtering for within population methylation changes in hypoxia, dmr$Count > 7, dmr$Gap > 0
 dmr <- dmr[, c(7, 2, 3)]
 
 # Get inversions
@@ -27,8 +29,9 @@ A <- toGRanges(dmr)
 B <- toGRanges(inv)
 numOverlaps(A,B)
 
-pt <- permTest(A = A, ntimes = 1000, alternative = "auto", genome = genome, randomize.function = randomizeRegions,
+pt <- permTest(A = A, ntimes = 1000, alternative = "greater", randomize.function = function(x, ...) randomizeRegions(x, genome = custom.genome),
                evaluate.function = numOverlaps, B = B, verbose = F)
+saveRDS(pt, file = "inversions-popdmr-permutation.rds")
 
 # Get coordinates for genes under positive selection
 # Two-way selection scan
@@ -46,8 +49,9 @@ ann_twoway <- ann_twoway[, c(10, 4, 5)]
 B <- toGRanges(ann_twoway)
 numOverlaps(A,B)
 
-pt <- permTest(A = A, ntimes = 1000, alternative = "auto", genome = genome, randomize.function = randomizeRegions,
+pt <- permTest(A = A, ntimes = 1000, alternative = "greater", randomize.function = function(x, ...) randomizeRegions(x, genome = custom.genome),
                evaluate.function = numOverlaps, B = B, verbose = F)
+saveRDS(pt, file = "2wayselection-popdmr-permutation.rds")
 
 # Three-way selection scan
 three <- read.csv("Table_S4_threeWayOutliers.csv")
@@ -57,5 +61,6 @@ ann_threeway <- ann_threeway[, c(10, 4, 5)]
 B <- toGRanges(ann_threeway)
 numOverlaps(A,B)
 
-pt <- permTest(A = A, ntimes = 1000, alternative = "auto", genome = genome, randomize.function = randomizeRegions,
+pt <- permTest(A = A, ntimes = 1000, alternative = "greater", randomize.function = function(x, ...) randomizeRegions(x, genome = custom.genome),
                evaluate.function = numOverlaps, B = B, verbose = F)
+saveRDS(pt, file = "3wayselection-popdmr-permutation.rds")
