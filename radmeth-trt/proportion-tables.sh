@@ -49,10 +49,10 @@ for name in "${file_names[@]}"; do
   files+=("$base_dir/$name$ext")
 done
 
-dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table-W-BW.txt"
+dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table.w.bw.txt"
 
 # W ME proportion table
-base_dir="/SCRATCH/bassis/wgbs/W/counts/CpG"
+base_dir="/"
 ext="_CpG.meth"
 
 file_names=(
@@ -102,7 +102,7 @@ for name in "${file_names[@]}"; do
   files+=("$base_dir/$name$ext")
 done
 
-dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table-W-ME.txt"
+dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table.w.me.txt"
 
 # LZ BW proportion table
 base_dir="/"
@@ -149,10 +149,10 @@ for name in "${file_names[@]}"; do
   files+=("$base_dir/$name$ext")
 done
 
-dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table-LZ-BW.txt"
+dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table.lz.bw.txt"
 
 # LZ ME proportion table
-base_dir="/SCRATCH/bassis/wgbs/counts/CpG"
+base_dir="/"
 ext="_CpG.meth"
 
 file_names=(
@@ -198,4 +198,95 @@ for name in "${file_names[@]}"; do
   files+=("$base_dir/$name$ext")
 done
 
-dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table-LZ-ME.txt"
+dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table.lz.me.txt"
+
+# JZ BW proportion table
+base_dir="/"
+ext="_CpG.meth"
+
+file_names=(
+JZ103
+JZ104
+JZ106
+JZ108
+JZ110
+JZ111
+JZ113
+JZ116
+JZ117
+JZ122
+JZ123
+JZ39
+JZ40
+JZ41
+JZ48
+JZ49
+JZ51
+JZ52
+JZ63
+JZ64
+JZ70
+JZ71
+JZ87
+JZ88
+JZ92
+JZ93
+JZ96
+JZ98
+JZ99
+)
+
+files=()
+for name in "${file_names[@]}"; do
+  files+=("$base_dir/$name$ext")
+done
+
+dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table.jz.bw.txt"
+
+# JZ ME proportion table
+base_dir="/"
+ext="_CpG.meth"
+
+file_names=(
+JZ11
+JZ129
+JZ130
+JZ131
+JZ132
+JZ134
+JZ135
+JZ138
+JZ142
+JZ145
+JZ147
+JZ15
+JZ166
+JZ167
+JZ169
+JZ214
+JZ23
+JZ2
+JZ32
+JZ33
+JZ3
+JZ5
+JZ60
+JZ61
+JZ66
+JZ67
+JZ6
+JZ72
+JZ74
+JZ75
+JZ78
+JZ7
+JZ82
+JZ83
+)
+
+files=()
+for name in "${file_names[@]}"; do
+  files+=("$base_dir/$name$ext")
+done
+
+dnmtools merge -t -radmeth "${files[@]}" > "$base_dir/proportion-table.jz.me.txt"
