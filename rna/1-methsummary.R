@@ -54,3 +54,59 @@ final <- cbind(ann[, .(Contig, Start, End)], methylation_data)
 final <- data.frame(final_output)
 rownames(final) <- ann$rn
 fwrite(final, "/methylation_summary.tsv", sep = "\t", quote = F, row.names = T)
+
+# For promoter methylation summary:
+#ann_expanded <- ann[, .(
+#  Contig,
+#  Start = pmax(ifelse(Strand == "+", Start - 500, End), 1),
+#  End   = pmax(ifelse(Strand == "+", Start,       End + 500), 1)
+#)]
+
+# For first intron methylation summary:
+
+# exons <- ann[Class == "exon"]
+
+# Get first and second exon per gene (in original file order)
+# first_two_exons <- exons[, .SD[1:2], by = Name]
+
+# Split into first and second exon tables
+# exon1 <- first_two_exons[, .SD[1], by = Name]
+# exon2 <- first_two_exons[, .SD[2], by = Name]
+
+# Preserve original order of genes in ann
+# gene_order <- unique(ann$Name)
+
+# Join exon1 with exon2 without reordering
+# setkey(exon1, Name)
+# setkey(exon2, Name)
+# introns <- exon2[exon1, nomatch = 0]   # preserves exon1's order
+
+# Build intron coordinates and drop incomplete rows
+# introns <- introns[, .(
+#  Name,
+#  Contig,
+#  Start = pmin(End + 1, i.Start - 1),
+#  End   = pmax(End + 1, i.Start - 1)
+#)]
+
+# Remove any rows with NA (genes lacking a second exon)
+#vintrons <- introns[complete.cases(introns)]
+
+# Ensure introns appear in the same order as ann
+# introns <- introns[match(gene_order, introns$Name), ]
+# introns <- introns[!is.na(Name)]
+
+# intron_gr <- GRanges(
+#  seqnames = introns$Contig,
+#  ranges = IRanges(start = introns$Start, end = introns$End)
+#)
+
+# For first exoon methylation summary:
+
+# exons <- ann[Class == "exon", .SD[1], by = Name]
+# genenames <- exons$Name
+
+# exon_gr <- GRanges(
+#  seqnames = exons$Contig,
+#  ranges = IRanges(start = exons$Start, end = exons$End)
+#)
