@@ -12,8 +12,14 @@ ann <- ann[!grepl("novel", ann$Name), ]
 ann$Name <- sub('.*gene_id ([^;]+);.*', '\\1', ann$Name)
 rownames(ann) <- ann$Name
 
-rna <- read.csv("LP_JZ_Pman_ExtMMFrac_readcounts_Exon.csv")
+# W
+rna <- read.csv("EP_Pman_ExtMMFrac_readcounts_Exon.csv")
 rna <- rna[rna$Geneid %in% ann$Name, ]
+
+# For LZ:
+# rna <- read.csv("LP_Pman_ExtMMFrac_readcounts_Exon.csv")
+# For JZ:
+# rna <- read.csv("LP_JZ_Pman_ExtMMFrac_readcounts_Exon.csv")
 
 setDT(ann, keep.rownames = T)
 setnames(ann, old = c(names(ann)[2], names(ann)[5], names(ann)[6]), new = c("Contig", "Start", "End"))
