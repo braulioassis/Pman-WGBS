@@ -32,35 +32,3 @@ numOverlaps(A,B)
 pt <- permTest(A = A, ntimes = 1000, alternative = "greater", randomize.function = function(x, ...) randomizeRegions(x, genome = custom.genome),
                evaluate.function = numOverlaps, B = B, verbose = F)
 saveRDS(pt, file = "inversions-popdmr-permutation.rds")
-
-# Get coordinates for genes under positive selection
-# Two-way selection scan
-two <- read.csv("Table_S2_twoWayOutlier_genes.csv")
-two <- two[c(1:992), ]
-
-# Get genes from two-way selection scan that are found in the Pman Isoquant annotation
-ann <- read.table("IsoquantAnnotation.gtf", sep = "\t", header = F,
-                  col.names = c("Contig", "Source", "Class", "Start", "End", "V6", "Strand", "V8", "Name"))
-ann <- ann[ann$Class == "gene", ]
-ann$Name <- sub('.*gene_id ([^;]+);.*', '\\1', ann$Name)
-ann_twoway <- ann[ann$Name %in% two$gene_symbol_pman, ]
-ann_twoway <- ann_twoway[, c(10, 4, 5)]
-
-B <- toGRanges(ann_twoway)
-numOverlaps(A,B)
-
-pt <- permTest(A = A, ntimes = 1000, alternative = "greater", randomize.function = function(x, ...) randomizeRegions(x, genome = custom.genome),
-               evaluate.function = numOverlaps, B = B, verbose = F)
-saveRDS(pt, file = "2wayselection-popdmr-permutation.rds")
-
-# Three-way selection scan
-three <- read.csv("Table_S4_threeWayOutliers.csv")
-ann_threeway <- ann[ann$Name %in% three$gene_pman, ]
-ann_threeway <- ann_threeway[, c(10, 4, 5)]
-
-B <- toGRanges(ann_threeway)
-numOverlaps(A,B)
-
-pt <- permTest(A = A, ntimes = 1000, alternative = "greater", randomize.function = function(x, ...) randomizeRegions(x, genome = custom.genome),
-               evaluate.function = numOverlaps, B = B, verbose = F)
-saveRDS(pt, file = "3wayselection-popdmr-permutation.rds")
