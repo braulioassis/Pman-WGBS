@@ -3,8 +3,8 @@
 # Generate proportion tables for bisulfite sequencing data using dnmtools
 # -------------------------------------------------------------------------
 # Each section below corresponds to a tissue-region group:
-#   - W BW (Basal Wall)
-#   - W ME (Mesophyll)
+#   - W BW (lowlanders)
+#   - W ME (highlanders)
 #   - LZ BW
 #   - LZ ME
 #   - JZ BW
@@ -14,7 +14,7 @@
 # Define helper function to build file lists and merge with dnmtools
 generate_proportion_table() {
   local base_dir="$1"          # Directory containing .meth files
-  local ext="$2"               # File extension (usually "_CpG.meth")
+  local ext="$2"               # File extension ("_CpG.meth")
   local output_file="$3"       # Output proportion table name
   shift 3                      # Shift remaining arguments (sample names)
   local file_names=("$@")      # Array of sample identifiers
