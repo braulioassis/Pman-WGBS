@@ -80,6 +80,5 @@ png("Fig4.png", res = 300, width = 18, height = 5, units = "in")
 grid.arrange(p1, p2, p3, nrow = 1)
 dev.off()
 
-png("Fig4.pdf", width = 18, height = 5)
-grid.arrange(p1, p2, p3, nrow = 1)
-dev.off()
+ggsave("Fig4.pdf", width = 18, height = 5, plot = (grid.arrange(p1, p2, p3, nrow = 1)), device = cairo_pdf)
+
