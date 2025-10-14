@@ -251,10 +251,10 @@ layout <- rbind(
   c(5, 6, 6, 6)  # Row 3: p5 (col 1), p6 (cols 2–4)
 )
 
-png("Fig1.png", res = 300, width = 14, height = 12, units = "in")
+png("Fig2.png", res = 300, width = 14, height = 12, units = "in")
 grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix = layout)
 dev.off()
 
-pdf("Fig1.pdf", width = 14, height = 12)
+pdf("Fig2.pdf", width = 14, height = 12)
 grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix = layout)
 dev.off()
