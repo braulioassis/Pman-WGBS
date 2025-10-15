@@ -1,7 +1,7 @@
 library(ggplot2)
 
 # P1
-winv <- readRDS("inversions-popdmrCTGA-permutation.rds")
+winv <- readRDS("w.inversions-popdmrCTGA-permutation.rds")
 w.inv <- data.frame(winv$numOverlaps$permuted)
 mu <- mean(w.inv$winv.numOverlaps.permuted)
 sigma <- sd(w.inv$winv.numOverlaps.permuted)
@@ -30,7 +30,7 @@ p1 <- ggplot(w.inv, aes(x = winv.numOverlaps.permuted)) +
        x = "Overlaps", y = "")
 
 # P2
-lzinv <- readRDS("inversions-popdmrCTGA-permutation.rds")
+lzinv <- readRDS("lz.inversions-popdmrCTGA-permutation.rds")
 lz.inv <- data.frame(lzinv$numOverlaps$permuted)
 mu <- mean(lz.inv$lzinv.numOverlaps.permuted)
 sigma <- sd(lz.inv$lzinv.numOverlaps.permuted)
@@ -58,7 +58,7 @@ p2 <- ggplot(lz.inv, aes(x = lzinv.numOverlaps.permuted)) +
        x = "Overlaps", y = "")
 
 # P3
-jzinv <- readRDS("inversions-popdmrCTGA-permutation.rds")
+jzinv <- readRDS("jz.inversions-popdmrCTGA-permutation.rds")
 jz.inv <- data.frame(jzinv$numOverlaps$permuted)
 mu <- mean(jz.inv$jzinv.numOverlaps.permuted)
 sigma <- sd(jz.inv$jzinv.numOverlaps.permuted)
