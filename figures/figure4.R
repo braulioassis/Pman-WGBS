@@ -10,7 +10,7 @@ colnames(cor_counts) <- c("bin", "count")
 cor_counts$midpoint <- sapply(strsplit(as.character(cor_counts$bin), ","), function(x) {
   as.numeric(gsub("[^0-9.-]", "", x[1])) + 0.05
 })
-cor_counts$highlight <- with(cor_counts, ifelse(midpoint > 0.3 | midpoint < -0.3, "Highlight", "Normal"))
+cor_counts$highlight <- with(cor_counts, ifelse(midpoint >= 0.3 | midpoint =< -0.3, "Highlight", "Normal"))
 
 sig_results <- filter(cor_results, abs(Cor) >= 0.3, FDR < 0.05)
 
@@ -36,7 +36,7 @@ colnames(cor_counts) <- c("bin", "count")
 cor_counts$midpoint <- sapply(strsplit(as.character(cor_counts$bin), ","), function(x) {
   as.numeric(gsub("[^0-9.-]", "", x[1])) + 0.05
 })
-cor_counts$highlight <- with(cor_counts, ifelse(midpoint > 0.3 | midpoint < -0.3, "Highlight", "Normal"))
+cor_counts$highlight <- with(cor_counts, ifelse(midpoint >= 0.3 | midpoint =< -0.3, "Highlight", "Normal"))
 
 p2 <- ggplot(cor_counts, aes(x = midpoint, y = count, fill = highlight)) +
   geom_col() +
@@ -60,7 +60,7 @@ colnames(cor_counts) <- c("bin", "count")
 cor_counts$midpoint <- sapply(strsplit(as.character(cor_counts$bin), ","), function(x) {
   as.numeric(gsub("[^0-9.-]", "", x[1])) + 0.05
 })
-cor_counts$highlight <- with(cor_counts, ifelse(midpoint > 0.3 | midpoint < -0.3, "Highlight", "Normal"))
+cor_counts$highlight <- with(cor_counts, ifelse(midpoint >= 0.3 | midpoint =< -0.3, "Highlight", "Normal"))
 
 p3 <- ggplot(cor_counts, aes(x = midpoint, y = count, fill = highlight)) +
   geom_col() +
