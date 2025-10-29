@@ -1,7 +1,7 @@
 library(ggplot2)
 library(gridExtra)
 
-perms <- readRDS("W-CPM-perm_hits.rds")
+perms <- readRDS("W-genebody-CPM-perm_hits.rds")
 hist(perms)
 
 perms <- data.frame(perms)
@@ -21,7 +21,7 @@ p1 <- ggplot(perms, aes(x = Hits)) +
   labs(title = "Early gestation, whole placenta",
        x = "", y = "Count")
 
-perms <- readRDS("LZ-CPM-perm_hits.rds")
+perms <- readRDS("LZ-genebody-CPM-perm_hits.rds")
 hist(perms)
 
 perms <- data.frame(perms)
@@ -42,7 +42,7 @@ p2 <- ggplot(perms, aes(x = Hits)) +
   labs(title = "Late gestation, labyrinth",
        x = "Significant methylation-expression correlations", y = "")
 
-perms <- readRDS("JZ-CPM-perm_hits.rds")
+perms <- readRDS("JZ-genebody-CPM-perm_hits.rds")
 hist(perms)
 
 perms <- data.frame(perms)
