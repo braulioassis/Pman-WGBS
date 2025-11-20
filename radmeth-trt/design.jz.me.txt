@@ -32,4 +32,3 @@ JZ78_CpG	1	1
 JZ7_CpG	1	1
 JZ82_CpG	1	0
 JZ83_CpG	1	0
-
