@@ -68,7 +68,7 @@ generate_proportion_table "/" "_CpG.meth" "/proportion-table.lz.me.txt" \
 # ----------------------
 generate_proportion_table "/" "_CpG.meth" "/proportion-table.jz.bw.txt" \
   JZ103 JZ104 JZ106 JZ108 JZ110 JZ111 JZ113 JZ116 JZ117 JZ122 JZ123 JZ39 \
-  JZ40 JZ41 JZ48 JZ49 JZ51 JZ52 JZ63 JZ64 JZ70 JZ71 JZ87 JZ88 JZ92 JZ93 \
+  JZ40 JZ41 JZ48 JZ49 JZ51 JZ63 JZ64 JZ70 JZ71 JZ87 JZ88 JZ92 JZ93 \
   JZ96 JZ98 JZ99
 
 # ----------------------
@@ -77,4 +77,4 @@ generate_proportion_table "/" "_CpG.meth" "/proportion-table.jz.bw.txt" \
 generate_proportion_table "/" "_CpG.meth" "/proportion-table.jz.me.txt" \
   JZ11 JZ129 JZ130 JZ131 JZ132 JZ134 JZ135 JZ138 JZ142 JZ145 JZ147 JZ15 \
   JZ166 JZ167 JZ169 JZ214 JZ23 JZ2 JZ32 JZ33 JZ3 JZ5 JZ60 JZ61 JZ66 JZ67 \
-  JZ6 JZ72 JZ74 JZ75 JZ78 JZ7 JZ82 JZ83
+  JZ72 JZ74 JZ75 JZ78 JZ7 JZ82 JZ83
