@@ -61,4 +61,3 @@ JZ96_CpG	1	0	1
 JZ98_CpG	1	0	0
 JZ99_CpG	1	0	0
 
-
