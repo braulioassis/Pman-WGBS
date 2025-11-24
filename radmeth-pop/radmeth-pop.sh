@@ -30,14 +30,14 @@ awk 'BEGIN{OFS="\t"} {print $1, $2, $2+1, $3, $4, $5, $6, $7, $8, $9}' radmeth.l
 awk 'BEGIN{OFS="\t"} {print $1, $2, $2+1, $3, $4, $5, $6, $7, $8, $9}' radmeth.jz.pop.trt.bed > radmeth.jz.pop.trt.fixed.bed
 
 # Remove overlapping positions
-bedtools intersect -a radmeth.w.pop.trt.fixed.bed -b CT_and_GA_positions2.1.3.bed -v > radmeth.w.pop.trt.filteredCTGA.bed
-bedtools intersect -a radmeth.lz.pop.trt.fixed.bed -b CT_and_GA_positions2.1.3.bed -v > radmeth.lz.pop.trt.filteredCTGA.bed
-bedtools intersect -a radmeth.jz.pop.trt.fixed.bed -b CT_and_GA_positions2.1.3.bed -v > radmeth.jz.pop.trt.filteredCTGA.bed
+bedtools intersect -a radmeth.w.pop.trt.fixed.bed -b CT_and_GA_positions2.1.3.bed -v > radmeth.w.pop.trt.filtCTGA.bed
+bedtools intersect -a radmeth.lz.pop.trt.fixed.bed -b CT_and_GA_positions2.1.3.bed -v > radmeth.lz.pop.trt.filtCTGA.bed
+bedtools intersect -a radmeth.jz.pop.trt.fixed.bed -b CT_and_GA_positions2.1.3.bed -v > radmeth.jz.pop.trt.filtCTGA.bed
 
 # Remove stop position for downstream processing
-awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.w.pop.trt.filteredCTGA.bed > radmeth.w.pop.trt.filteredCTGA.bed
-awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.lz.pop.trt.filteredCTGA.bed > radmeth.lz.pop.trt.filteredCTGA.bed
-awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.jz.pop.trt.filteredCTGA.bed > radmeth.jz.pop.trt.filteredCTGA.bed
+awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.w.pop.trt.filtCTGA.bed > radmeth.w.pop.trt.filteredCTGA.bed
+awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.lz.pop.trt.filtCTGA.bed > radmeth.lz.pop.trt.filteredCTGA.bed
+awk 'BEGIN{OFS="\t"} {$3=""; $1=$1; print}' radmeth.jz.pop.trt.filtCTGA.bed > radmeth.jz.pop.trt.filteredCTGA.bed
 
 ### Build DMR's 
 # Adjust p-values based on neighboring loci
