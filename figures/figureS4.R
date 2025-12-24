@@ -1,191 +1,226 @@
 library(ggplot2)
 library(gridExtra)
+library(dplyr)
+library(viridis)
+library(ggsignif)
 
+# P1
+wgbs <- read.csv("lz.summary.CpG.csv")
+wgbs$Population[wgbs$Population == "ME"] <- "Highland"
+wgbs$Population[wgbs$Population == "BW"] <- "Lowland"
+wgbs$Population <- factor(wgbs$Population, levels = c("Lowland", "Highland"))
+wgbs$Treatment[wgbs$Treatment == "1N"] <- "Normoxia"
+wgbs$Treatment[wgbs$Treatment == "2H"] <- "Hypoxia"
+wgbs$Treatment <- factor(wgbs$Treatment, levels = c("Normoxia", "Hypoxia"))
+
+p1 <- ggplot(wgbs[wgbs$MeanDepth > 2 & wgbs$Population == "Lowland", ], aes(x = Treatment, y = MeanMeth)) +
+  geom_boxplot(outlier.shape = NA, linewidth = 0.8, fill = "goldenrod1") +
+  geom_jitter(color = "black", width = 0.15, alpha = 0.6) +
+  geom_signif(comparisons = list(c("Normoxia", "Hypoxia")), annotations = "n.s.", textsize = 3) +
+  labs(title = "Global methylation",
+       y = "CpG methylation rate",
+       x = "") +
+  ylim(0.35, 0.65) +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.line = element_line(color = "black", linewidth = 0.8),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8),
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_line(color = "gray85"), panel.grid.minor = element_line(color = "gray90"),
+        panel.background = element_rect(color = "#FFFFFF", fill = "#FFFFFF"),
+        legend.position = c(0.75, 0.8), legend.background = element_rect(color = "black"))
+
+# P2
+bw <- read.table("radmeth.lz.bw.trt.adj.dmr.bed")
 chrs <- read.table("sequence_report.tsv", header = T, sep = "\t")
 chrs$GenBank.seq.accession <- gsub("\\.2$", ".1", chrs$GenBank.seq.accession)
+bw$Chrom <- chrs$Sequence.name[match(bw$V1, chrs$RefSeq.seq.accession)]
+bw <- bw[!grepl("scaff|MT", bw$Chrom), ]
+bw$Chrom <- gsub("chr", "", bw$Chrom)
+bw$Chrom[bw$Chrom == "X"] <- 24
+bw$Chrom <- as.numeric(bw$Chrom)
+bw$V2 <- as.numeric(bw$V2)
+bw$V5 <- as.numeric(bw$V5)
+unique(bw$Chrom)
+bw <- na.omit(bw[, c("Chrom", "V2", "V5")])
 
-w <- read.table("radmeth.w.pop.trt.filteredCTGA.adj.dmr.bed", sep = "\t", header = F, 
-                  col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-w$Chrom <- chrs$Sequence.name[match(w$Contig, chrs$RefSeq.seq.accession)]
-w$Density <- (w$End - w$Start)/w$Count
-w <- w[w$Count > 29, ]
-w <- w[w$Density < 50, ]
+bw <- bw %>% 
+  
+  # Compute chromosome size
+  group_by(Chrom) %>% 
+  summarise(chr_len=max(V2)) %>% 
+  
+  # Calculate cumulative position of each chromosome
+  mutate(tot=cumsum(chr_len)-chr_len) %>%
+  select(-chr_len) %>%
+  
+  # Add this info to the initial dataset
+  left_join(bw, ., by=c("Chrom"="Chrom")) %>%
+  
+  # Add a cumulative position of each SNP
+  arrange(Chrom, V2) %>%
+  mutate(BPcum=V2+tot)
 
+axisbw = bw %>%
+  group_by(Chrom) %>%
+  summarize(center=(max(BPcum) + min(BPcum) ) / 2 )
 
-w.bw <- read.table("radmeth.w.bw.trt.adj.dmr.bed", sep = "\t", header = F,
-                  col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-w.bw$Chrom <- chrs$Sequence.name[match(w.bw$Contig, chrs$RefSeq.seq.accession)]
-w.bw <- w.bw[w.bw$Count > 7, ]
+axisbw <- axisbw[c(1,3,5,7,9,11,13,15,17,19,21,23), ]
 
-w.me <- read.table("radmeth.w.me.trt.adj.dmr.bed", sep = "\t", header = F,
-                   col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-w.me$Chrom <- chrs$Sequence.name[match(w.me$Contig, chrs$RefSeq.seq.accession)]
-w.me <- w.me[w.me$Count > 7, ]
+p2 <- ggplot(bw, aes(x=BPcum, y=V5)) +
+  geom_hline(yintercept = 8, color = "deepskyblue2", size = 1, alpha = 0.7) +
+  geom_point(aes(color=as.factor(Chrom)), alpha=0.8, size = 1.3) +
+  scale_color_manual(values = rep(c("goldenrod1", "grey"), 23)) +
+  scale_x_continuous(label = axisbw$Chrom, breaks = axisbw$center) +
+  scale_y_continuous(limits = c(0, 30), expand = expansion(mult = c(0, 0.05))) + # remove space between plot area and x axis
+  labs(title = "Lowlanders, late gestation, labyrinth zone",
+       y = "Differential methylation sites",
+       x = "") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8),
+        legend.position="none",
+        panel.border = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()
+  )
 
-lz <- read.table("radmeth.lz.pop.trt.filteredCTGA.adj.dmr.bed", sep = "\t", header = F, 
-                col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-lz$Chrom <- chrs$Sequence.name[match(lz$Contig, chrs$RefSeq.seq.accession)]
-lz$Density <- (lz$End - lz$Start)/lz$Count
-lz <- lz[lz$Count > 29, ]
-lz <- lz[lz$Density < 50, ]
+# P3
+wgbs <- read.csv("lz.summary.CpG.csv")
+wgbs$Population[wgbs$Population == "ME"] <- "Highland"
+wgbs$Population[wgbs$Population == "BW"] <- "Lowland"
+wgbs$Population <- factor(wgbs$Population, levels = c("Lowland", "Highland"))
+wgbs$Treatment[wgbs$Treatment == "1N"] <- "Normoxia"
+wgbs$Treatment[wgbs$Treatment == "2H"] <- "Hypoxia"
+wgbs$Treatment <- factor(wgbs$Treatment, levels = c("Normoxia", "Hypoxia"))
 
+p3 <- ggplot(wgbs[wgbs$MeanDepth > 2 & wgbs$Population == "Highland", ], aes(x = Treatment, y = MeanMeth)) +
+  geom_boxplot(outlier.shape = NA, linewidth = 0.8, fill = "deepskyblue3") +
+  geom_jitter(color = "black", width = 0.15, alpha = 0.6) +
+  geom_signif(comparisons = list(c("Normoxia", "Hypoxia")), annotations = "n.s.", textsize = 3) +
+  labs(y = "CpG methylation rate",
+       x = "") +
+  ylim(0.35, 0.65) +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.line = element_line(color = "black", linewidth = 0.8),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8),
+        legend.text = element_text(size = 8),
+        panel.grid.major = element_line(color = "gray85"), panel.grid.minor = element_line(color = "gray90"),
+        panel.background = element_rect(color = "#FFFFFF", fill = "#FFFFFF"),
+        legend.position = c(0.75, 0.8), legend.background = element_rect(color = "black"))
+
+# P4
+me <- read.table("radmeth.lz.me.trt.adj.dmr.bed")
+chrs <- read.table("sequence_report.tsv", header = T, sep = "\t")
+chrs$GenBank.seq.accession <- gsub("\\.2$", ".1", chrs$GenBank.seq.accession)
+me$Chrom <- chrs$Sequence.name[match(me$V1, chrs$RefSeq.seq.accession)]
+me <- me[!grepl("scaff|MT", me$Chrom), ]
+me$Chrom <- gsub("chr", "", me$Chrom)
+me$Chrom[me$Chrom == "X"] <- 24
+me$Chrom <- as.numeric(me$Chrom)
+me$V2 <- as.numeric(me$V2)
+me$V5 <- as.numeric(me$V5)
+unique(me$Chrom)
+me <- na.omit(me[, c("Chrom", "V2", "V5")])
+
+me <- me %>% 
+  
+  # Compute chromosome size
+  group_by(Chrom) %>% 
+  summarise(chr_len=max(V2)) %>% 
+  
+  # Calculate cumulative position of each chromosome
+  mutate(tot=cumsum(chr_len)-chr_len) %>%
+  select(-chr_len) %>%
+  
+  # Add this info to the initial dataset
+  left_join(me, ., by=c("Chrom"="Chrom")) %>%
+  
+  # Add a cumulative position of each SNP
+  arrange(Chrom, V2) %>%
+  mutate(BPcum=V2+tot)
+
+axisme = me %>%
+  group_by(Chrom) %>%
+  summarize(center=(max(BPcum) + min(BPcum) ) / 2 )
+
+axisme <- axisme[c(1,3,5,7,9,11,13,15,17,19,21,23), ]
+
+p4 <- ggplot(me, aes(x=BPcum, y=V5)) +
+  geom_hline(yintercept = 8, color = "goldenrod1", size = 1, alpha = 0.7) +
+  geom_point(aes(color=as.factor(Chrom)), alpha=0.8, size = 1.3) +
+  scale_color_manual(values = rep(c("deepskyblue3", "grey"), 23)) +
+  scale_x_continuous(label = axisme$Chrom, breaks = axisme$center) +
+  scale_y_continuous(limits = c(0, 30), expand = expansion(mult = c(0, 0.05))) + # remove space between plot area and x axis
+  labs(title = "Highlanders, late gestation, labyrinth zone",
+       y = "Differential methylation sites",
+       x = "Chromosome") +
+  theme_bw() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8),
+        legend.position="none",
+        panel.border = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()
+  )
+
+# P5
 lz.bw <- read.table("radmeth.lz.bw.trt.adj.dmr.bed", sep = "\t", header = F,
                    col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
 lz.bw$Chrom <- chrs$Sequence.name[match(lz.bw$Contig, chrs$RefSeq.seq.accession)]
 lz.bw <- lz.bw[lz.bw$Count > 7, ]
 
+p5 <- ggplot(lz.bw, aes(x = Stat)) +
+  geom_histogram() +
+  labs(x = "", y = "Number of significant DMRs", title = "DMRs in hypoxia") +
+  coord_cartesian(xlim = c(-0.75, 0.75)) +
+  ylim(0, 5) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8),
+        legend.position="none",
+        panel.border = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()
+  )
+
+# P6
 lz.me <- read.table("radmeth.lz.me.trt.adj.dmr.bed", sep = "\t", header = F,
                    col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
 lz.me$Chrom <- chrs$Sequence.name[match(lz.me$Contig, chrs$RefSeq.seq.accession)]
 lz.me <- lz.me[lz.me$Count > 7, ]
 
-jz <- read.table("radmeth.jz.pop.trt.filteredCTGA.adj.dmr.bed", sep = "\t", header = F, 
-                 col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-jz$Chrom <- chrs$Sequence.name[match(jz$Contig, chrs$RefSeq.seq.accession)]
-jz$Density <- (jz$End - jz$Start)/jz$Count
-jz <- jz[jz$Count > 29, ]
-jz <- jz[jz$Density < 50, ]
-
-jz.bw <- read.table("radmeth.jz.bw.trt.adj.dmr.bed", sep = "\t", header = F,
-                    col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-jz.bw$Chrom <- chrs$Sequence.name[match(jz.bw$Contig, chrs$RefSeq.seq.accession)]
-jz.bw <- jz.bw[jz.bw$Count > 7, ]
-
-jz.me <- read.table("radmeth.jz.me.trt.adj.dmr.bed", sep = "\t", header = F,
-                    col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-jz.me$Chrom <- chrs$Sequence.name[match(jz.me$Contig, chrs$RefSeq.seq.accession)]
-jz.me <- jz.me[jz.me$Count > 7, ]
-
-p1 <- ggplot(w, aes(x = Stat)) +
+p6 <- ggplot(lz.me, aes(x = Stat)) +
   geom_histogram() +
-  labs(x = "", y = "DMRs", title = "Population-level differential methylation\nEarly gestation, whole placenta") +
-  xlim(-1,1) + 
+  labs(x = "Methylation diff. in hypoxia", y = "Number of significant DMRs") +
+  coord_cartesian(xlim = c(-0.75, 0.75)) +
+  ylim(0, 5) +
   theme_bw() +
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8),
         legend.position="none",
         panel.border = element_blank(),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank()
   )
 
-p4 <- ggplot(w.bw, aes(x = Stat)) +
-  geom_histogram() +
-  labs(x = "", y = "DMRs", title = "Exposure-level differential methylation\nLowland ancestry") +
-  xlim(-1,1) + 
-  theme_bw() +
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
-        legend.position="none",
-        panel.border = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank()
-  )
 
-p7 <- ggplot(w.me, aes(x = Stat)) +
-  geom_histogram() +
-  labs(x = "Differential methylation in hypoxia", y = "DMRs", title = "Exposure-level differential methylation\nHighland ancestry") +
-  xlim(-1,1) + 
-  theme_bw() +
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
-        legend.position="none",
-        panel.border = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank()
-  )
+# Layout
+layout <- rbind(
+  c(1, 2, 2, 5),
+  c(3, 4, 4, 6)
+)
 
-p2 <- ggplot(lz, aes(x = Stat)) +
-  geom_histogram() +
-  labs(x = "", y = "", title = "Population-level differential methylation\nLate gestation, labyrinth") +
-  xlim(-1,1) + 
-  theme_bw() +
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
-        legend.position="none",
-        panel.border = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank()
-  )
-
-p5 <- ggplot(lz.bw, aes(x = Stat)) +
-  geom_histogram() +
-  labs(x = "", y = "", title = "Exposure-level differential methylation\nLowland ancestry") +
-  xlim(-1,1) + 
-  theme_bw() +
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
-        legend.position="none",
-        panel.border = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank()
-  )
-
-p8 <- ggplot(lz.me, aes(x = Stat)) +
-  geom_histogram() +
-  labs(x = "Differential methylation in hypoxia", y = "", title = "Exposure-level differential methylation\nHighland ancestry") +
-  xlim(-1,1) + 
-  theme_bw() +
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
-        legend.position="none",
-        panel.border = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank()
-  )
-
-p3 <- ggplot(jz, aes(x = Stat)) +
-  geom_histogram() +
-  labs(x = "", y = "", title = "Population-level differential methylation\nLate gestation, junctional zone") +
-  xlim(-1,1) + 
-  theme_bw() +
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
-        legend.position="none",
-        panel.border = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank()
-  )
-
-p6 <- ggplot(jz.bw, aes(x = Stat)) +
-  geom_histogram() +
-  labs(x = "", y = "", title = "Exposure-level differential methylation\nLowland ancestry") +
-  xlim(-1,1) + 
-  theme_bw() +
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
-        legend.position="none",
-        panel.border = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank()
-  )
-
-p9 <- ggplot(jz.me, aes(x = Stat)) +
-  geom_histogram() +
-  labs(x = "Differential methylation in hypoxia", y = "", title = "Exposure-level differential methylation\nHighland ancestry") +
-  theme_bw() +
-  xlim(-1,1) + 
-  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 14),
-        legend.position="none",
-        panel.border = element_blank(),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank()
-  )
-
-png("FigS4.png", res = 300, width = 12, height = 10, units = "in")
-grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, nrow = 3, ncol = 3)
+# Render
+png("Figure S4.png", res = 300, width = 8.5, height = 6, units = "in")
+grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix = layout)
 dev.off()
 
-pdf("FigS4.pdf", width = 12, height = 10)
-grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, nrow = 3, ncol = 3)
+pdf("Figure S4.pdf", width = 8.5, height = 6)
+grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix = layout)
 dev.off()
