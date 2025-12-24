@@ -1,69 +1,96 @@
 library(ggplot2)
+library(gridExtra)
 
-chrs <- read.table("sequence_report.tsv", header = T, sep = "\t")
-chrs$GenBank.seq.accession <- gsub("\\.2$", ".1", chrs$GenBank.seq.accession)
+# P1
+winv <- readRDS("w.inversions-popdmrCTGA-permutation.rds")
+w.inv <- data.frame(winv$numOverlaps$permuted)
+mu <- mean(w.inv$winv.numOverlaps.permuted)
+sigma <- sd(w.inv$winv.numOverlaps.permuted)
 
-w <- read.table("radmeth.w.pop.trt.filteredCTGA.adj.dmr.bed", sep = "\t", header = F, 
-                 col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-w$Chrom <- chrs$Sequence.name[match(w$Contig, chrs$RefSeq.seq.accession)]
-w$Density <- (w$End - w$Start)/w$Count
-w <- w[w$Count > 29, ]
-w <- w[w$Density < 50, ]
+observed <- 68
+signif <- quantile(w.inv$winv.numOverlaps.permuted, 0.95)
+
+p1 <- ggplot(w.inv, aes(x = winv.numOverlaps.permuted)) +
+  geom_histogram(aes(y = ..count..), 
+                 bins = 30, 
+                 fill = "slategray3", 
+                 alpha = 0.3) +
+  geom_vline(xintercept = signif, color = "firebrick3", size = 1) +
+  geom_vline(xintercept = observed, color = "seagreen3", size = 1) +
+  annotate("text", x = observed - 1, y = 75, 
+           label = "", angle = 90, vjust = -0.5, 
+           color = "seagreen3", size = 6) +
+  annotate("text", x = signif - 1, y = 75, 
+           label = "\u03B1 = 0.05", angle = 90, vjust = -0.5, 
+           color = "firebrick3", size = 3) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8)) +
+  labs(title = "Early gestation, whole placenta",
+       x = "Overlaps", y = "")
+
+# P2
+lzinv <- readRDS("lz.inversions-popdmrCTGA-permutation.rds")
+lz.inv <- data.frame(lzinv$numOverlaps$permuted)
+mu <- mean(lz.inv$lzinv.numOverlaps.permuted)
+sigma <- sd(lz.inv$lzinv.numOverlaps.permuted)
+
+observed <- 42
+signif <- quantile(lz.inv$lzinv.numOverlaps.permuted, 0.95)
+p2 <- ggplot(lz.inv, aes(x = lzinv.numOverlaps.permuted)) +
+  geom_histogram(aes(y = ..count..), 
+                 bins = 30, 
+                 fill = "slategray3", 
+                 alpha = 0.3) +
+  geom_vline(xintercept = signif, color = "firebrick3", size = 1) +
+  geom_vline(xintercept = observed, color = "seagreen3", size = 1) +
+  annotate("text", x = observed - 0.2, y = 95, 
+           label = "", angle = 90, vjust = -0.5, 
+           color = "seagreen3", size = 6) +
+  annotate("text", x = signif - 0.2, y = 96, 
+           label = "\u03B1 = 0.05", angle = 90, vjust = -0.5, 
+           color = "firebrick3", size = 3) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8)) +
+  labs(title = "Late gestation, labyrinth",
+       x = "Overlaps", y = "")
+
+# P3
+jzinv <- readRDS("jz.inversions-popdmrCTGA-permutation.rds")
+jz.inv <- data.frame(jzinv$numOverlaps$permuted)
+mu <- mean(jz.inv$jzinv.numOverlaps.permuted)
+sigma <- sd(jz.inv$jzinv.numOverlaps.permuted)
+
+observed <- 45
+signif <- quantile(jz.inv$jzinv.numOverlaps.permuted, 0.95)
+p3 <- ggplot(jz.inv, aes(x = jzinv.numOverlaps.permuted)) +
+  geom_histogram(aes(y = ..count..), 
+                 bins = 30, 
+                 fill = "slategray3", 
+                 alpha = 0.3) +
+  geom_vline(xintercept = signif, color = "firebrick3", size = 1) +
+  geom_vline(xintercept = observed, color = "seagreen3", size = 1) +
+  annotate("text", x = observed - 0.2, y = 75, 
+           label = "", angle = 90, vjust = -0.5, 
+           color = "seagreen3", size = 6) +
+  annotate("text", x = signif - 0.2, y = 65, 
+           label = "\u03B1 = 0.05", angle = 90, vjust = -0.5, 
+           color = "firebrick3", size = 3) +
+  theme_minimal() +
+  theme(plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+        axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8)) +
+  labs(title = "Late gestation, junctional zone",
+       x = "Overlaps", y = "")
 
 
-lz <- read.table("radmeth.lz.pop.trt.filteredCTGA.adj.dmr.bed", sep = "\t", header = F, 
-                  col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-lz$Chrom <- chrs$Sequence.name[match(lz$Contig, chrs$RefSeq.seq.accession)]
-lz$Density <- (lz$End - lz$Start)/lz$Count
-lz <- lz[lz$Count > 29, ]
-lz <- lz[lz$Density < 50, ]
-
-jz <- read.table("radmeth.jz.pop.trt.filteredCTGA.adj.dmr.bed", sep = "\t", header = F, 
-                 col.names = c("Contig", "Start", "End", "DMR", "Count", "Stat"))
-jz$Chrom <- chrs$Sequence.name[match(jz$Contig, chrs$RefSeq.seq.accession)]
-jz$Density <- (jz$End - jz$Start)/jz$Count
-jz <- jz[jz$Count > 29, ]
-jz <- jz[jz$Density < 50, ]
-
-vec <- c()
-for (i in 1:nrow(w)) {
-  y_lz <- which(
-    ((w$Chrom[i] == lz$Chrom) & (w$Start[i] >= lz$Start) & (w$Start[i] <= lz$End)) |
-      ((w$Chrom[i] == lz$Chrom) & (w$End[i] >= lz$Start) & (w$End[i] <= lz$End))
-  )
-  
-  y_jz <- which(
-    ((w$Chrom[i] == jz$Chrom) & (w$Start[i] >= jz$Start) & (w$Start[i] <= jz$End)) |
-      ((w$Chrom[i] == jz$Chrom) & (w$End[i] >= jz$Start) & (w$End[i] <= jz$End))
-  )
-  
-  if (length(y_lz) >= 1 & length(y_jz) >= 1) {
-    x <- w[i, c(7, 2, 3)]
-    vec <- rbind(vec, x)
-  }
-}
-
-vec$Chrom <- factor(vec$Chrom, levels = unique(vec$Chrom))
-vec$Chrom <- gsub("chr", "", vec$Chrom)
-vec$Chrom <- as.numeric(vec$Chrom)
-axis <- c(1,3,5,7,9,11,13,15,17,19,21,23)
-
-p1 <- ggplot(vec, aes(x = Chrom)) +
-  geom_bar() +
-  scale_x_continuous(label = axis, breaks = axis) +
-  labs(y = "DMRs conserved across all tissues", x = "Chromosome") +
-  theme(plot.title = element_text(size = 20, face = "bold", hjust = 0.5),
-        axis.line = element_line(color = "black", linewidth = 0.8),
-        axis.title = element_text(size = 20),
-        axis.text = element_text(size = 16),
-        panel.grid.major = element_line(color = "gray85"), panel.grid.minor = element_line(color = "gray90"),
-        panel.background = element_rect(color = "#FFFFFF", fill = "#FFFFFF"))
-
-png("FigS3.png", res = 300, width = 9, height = 6, units = "in")
-p1
+png("Figure S3.png", res = 300, width = 8.5, height = 2.8, units = "in")
+grid.arrange(p1, p2, p3, nrow = 1)
 dev.off()
 
-png("FigS3.pdf", width = 9, height = 6)
-p1
+pdf("Figure S3.pdf", width = 8.5, height = 2.8)
+grid.arrange(p1, p2, p3, nrow = 1)
 dev.off()
-
