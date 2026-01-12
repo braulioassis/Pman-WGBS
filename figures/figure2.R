@@ -209,18 +209,125 @@ p6 <- ggplot(w.me, aes(x = Stat)) +
         panel.grid.minor.x = element_blank()
   )
 
+# P7
+df <- read.csv("w.summary.hypoxia.regions.csv")
+
+colnames(df) <- gsub("_CpG", "", colnames(df))
+
+sample_info <- read.csv("w.summary.CpG.csv")
+stopifnot(all(colnames(meth_matrix) %in% sample_info$FileName))
+
+sample_info <- sample_info[
+  match(colnames(meth_matrix), sample_info$FileName),
+]
+sample_info <- sample_info[sample_info$Population == "ME" | sample_info$Population == "BW", ]
+sample_info$Treatment[sample_info$Treatment == "1N"] <- "Normoxia"
+sample_info$Treatment[sample_info$Treatment == "2H"] <- "Hypoxia"
+sample_info$Population[sample_info$Population == "ME"] <- "Highland"
+sample_info$Population[sample_info$Population == "BW"] <- "Lowland"
+
+sample_info$Group <- with(sample_info,
+                          interaction(Population, Treatment, sep = "_"))
+
+sample_info$Group <- factor(sample_info$Group,
+                            levels = c("Lowland_Normoxia", "Lowland_Hypoxia",
+                                       "Highland_Normoxia", "Highland_Hypoxia")
+)
+
+levels(sample_info$Group) <- c(
+  "Lowland, normoxia",
+  "Lowland, hypoxia",
+  "Highland, normoxia",
+  "Highland, hypoxia"
+)
+
+meth_matrix <- as.matrix(df[ , -(1:3)])
+rownames(meth_matrix) <- paste(df$Contig, df$Start, df$End, sep = "_")
+
+new_order <- order(sample_info$Group)
+
+meth_matrix2 <- meth_matrix[, new_order]
+sample_info2 <- sample_info[new_order, ]
+
+
+meth_matrix2 <- t(apply(meth_matrix2, 1, function(x) {
+  if (all(is.na(x))) return(rep(NA, length(x)))
+  x[is.na(x)] <- mean(x, na.rm = TRUE)
+  x
+}))
+
+meth_matrix2 <- meth_matrix2[rowSums(is.na(meth_matrix2)) == 0, ]
+
+row_var <- apply(meth_matrix2, 1, var)
+meth_matrix2 <- meth_matrix2[row_var > 0, ]
+
+meth_z <- t(scale(t(meth_matrix2), center = TRUE, scale = TRUE))
+hm <- pheatmap(
+  meth_z,
+  silent = T,
+  )
+row_order <- hm$tree_row$order
+col_order <- hm$tree_col$order
+
+df <- as.data.frame(meth_z)
+df$row <- rownames(df)
+
+long <- pivot_longer(
+  df,
+  -row,
+  names_to = "column",
+  values_to = "value"
+)
+long$Group <- sample_info2$Group[match(long$column, colnames(meth_z))]
+long$Group <- factor(
+  long$Group,
+  levels = c("Lowland, normoxia", "Lowland, hypoxia",
+             "Highland, normoxia", "Highland, hypoxia")
+)
+long$row <- factor(long$row, levels = rownames(meth_z)[row_order])
+long$column <- factor(long$column, levels = colnames(meth_z)[col_order])
+
+p7 <- ggplot(long, aes(column, row, fill = value)) +
+  geom_tile() +
+  facet_grid(
+    . ~ Group,
+    scales = "free_x",
+    space  = "free_x"
+  ) +
+  scale_fill_viridis_c(
+    name   = "Z-scored\nmethylation rate",
+    limits = c(-5, 5),
+    breaks = c(-5, 0, 5)
+  ) +
+  labs(title = "Methylation rate, hypoxia-sensitive DMRs") +
+  theme_bw() +
+  theme(
+    plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
+    axis.title = element_blank(),
+    axis.text  = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_blank(),
+    strip.text.x = element_text(size = 8),
+    panel.spacing.x = unit(0, "pt"),
+    panel.border = element_blank(),
+    panel.grid = element_blank(),
+    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 8)
+  )
 
 # Layout
 layout <- rbind(
   c(1, 2, 2, 5),
-  c(3, 4, 4, 6)
+  c(3, 4, 4, 6),
+  c(7),
+  c(7)
 )
 
 # Render
-png("Figure 2.png", res = 300, width = 8.5, height = 6, units = "in")
-grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix = layout)
+png("Figure 2.png", res = 300, width = 8.5, height = 11, units = "in")
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, layout_matrix = layout)
 dev.off()
 
-pdf("Figure 2.pdf", width = 8.5, height = 6)
-grid.arrange(p1, p2, p3, p4, p5, p6, layout_matrix = layout)
+pdf("Figure 2.pdf", width = 8.5, height = 11)
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, layout_matrix = layout)
 dev.off()
